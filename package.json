@@ -13,12 +13,16 @@
   "license": "ISC",
   "author": "LycalopX",
   "type": "commonjs",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@google-cloud/local-auth": "^3.0.1",
     "express": "^5.1.0",
-    "open": "^11.0.0"
+    "google-libphonenumber": "^3.2.43",
+    "googleapis": "^166.0.0",
+    "multer": "^2.0.2",
+    "open": "^8.4.2"
   }
 }

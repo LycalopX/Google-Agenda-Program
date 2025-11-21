@@ -1,0 +1,24 @@
+{
+  "name": "gc-assitant",
+  "version": "1.0.0",
+  "description": "Recebe de Google Script informações da sua agenda, e age de acordo.",
+  "keywords": [
+    "google",
+    "calendar"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "GoogleCalendar-Assistant"
+  },
+  "license": "ISC",
+  "author": "LycalopX",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "open": "^11.0.0"
+  }
+}

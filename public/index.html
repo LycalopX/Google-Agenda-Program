@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Agendador Pro</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #f4f4f9;
+            padding: 10px;
+        }
+
+        /* Abas */
+        .tabs {
+            display: flex;
+            background: white;
+            margin-bottom: 10px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            background: #eee;
+            border: 1px solid #ddd;
+        }
+
+        .tab.active {
+            background: #fff;
+            border-bottom: 3px solid #25D366;
+            font-weight: bold;
+        }
+
+        /* Conteúdo */
+        .content {
+            display: none;
+            padding: 20px;
+            background: white;
+            min-height: 300px;
+            border: 1px solid #ddd;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        /* Lista */
+        .item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-zap {
+            background: #25D366;
+            color: white;
+            padding: 5px 10px;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
+        /* Config */
+        .drop-zone {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .drop-zone.dragover {
+            background: #e8fce8;
+            border-color: #25D366;
+        }
+
+        input {
+            padding: 5px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🤖 Assistente de Agenda</h1>
+
+    <div class="tabs">
+        <div class="tab active" onclick="abrirAba('agenda')">📅 Agenda</div>
+        <div class="tab" onclick="abrirAba('config')">⚙️ Configurações</div>
+    </div>
+
+    <div id="agenda" class="content active">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <button onclick="carregarAgenda()" style="padding: 8px 15px; cursor: pointer;">🔄 Atualizar Lista</button>
+
+            <label
+                style="display: flex; align-items: center; cursor: pointer; background: #eee; padding: 5px 10px; border-radius: 5px; border: 1px solid #ccc;">
+                <input type="checkbox" id="check-filtro" onchange="alternarFiltro()" style="margin: 0 8px 0 0;">
+                Ocultar "Lixo"
+            </label>
+        </div>
+
+        <div id="lista">Carregando...</div>
+    </div>
+
+    <div id="config" class="content">
+        <div class="config-section">
+            <label>Ignorar eventos que contenham (separe por vírgula):</label>
+            <textarea id="conf-ignorar" rows="3" style="width: 100%; margin-top: 5px;"
+                placeholder="Ex: almoço, reunião, feriado, particular"></textarea>
+            <button onclick="salvarConfig()">Salvar Preferências</button>
+        </div>
+
+        <h3>Configurações</h3>
+        <label>Dias para visualizar:</label>
+        <input type="number" id="conf-dias" value="1" min="1">
+        <button onclick="salvarConfig()">Salvar</button>
+
+        <hr>
+        <h3>Gerenciador de Arquivos</h3>
+        <input type="password" id="senha-admin" placeholder="Senha Admin (Padrão: admin)">
+
+        <div class="drop-zone" id="drop-cred">Arraste <b>credentials.json</b> aqui</div>
+        <div class="drop-zone" id="drop-banco">Arraste <b>pacientes.json</b> aqui</div>
+    </div>
+<script>
+    // Variável Global para armazenar os dados brutos da agenda
+    let agendaBruta = [];
+
+    // --- FUNÇÕES UTILITÁRIAS ---
+    function abrirAba(nomeAba) {
+        document.querySelectorAll('.content').forEach(d => d.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        
+        const abas = document.querySelectorAll('.tab');
+        if(nomeAba === 'agenda') abas[0].classList.add('active');
+        if(nomeAba === 'config') abas[1].classList.add('active');
+
+        document.getElementById(nomeAba).classList.add('active');
+        if(nomeAba === 'config') carregarConfig();
+    }
+
+    // --- FUNÇÕES DE CONFIGURAÇÃO (Sem mudanças) ---
+    async function carregarConfig() {
+        try {
+            const res = await fetch('/api/settings');
+            const json = await res.json();
+            
+            if(json.diasEscopo) document.getElementById('conf-dias').value = json.diasEscopo;
+            if(json.ignorar) document.getElementById('conf-ignorar').value = json.ignorar;
+            
+        } catch(e) { console.error(e); }
+    }
+
+    async function salvarConfig() {
+        const dias = document.getElementById('conf-dias').value;
+        const ignorar = document.getElementById('conf-ignorar').value;
+        
+        await fetch('/api/settings', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+                diasEscopo: parseInt(dias),
+                ignorar: ignorar
+            })
+        });
+        alert("Configurações salvas! Clique em 'Atualizar Lista' para ver o efeito.");
+    }
+
+    // --- LÓGICA DO FILTRO E RENDERIZAÇÃO ---
+    
+    // Função NOVA: Pega as palavras e filtra a agendaBruta
+    async function renderizarAgenda() {
+        const div = document.getElementById('lista');
+        div.innerHTML = '';
+        
+        // Pega o estado atual do filtro no checkbox
+        const filtroAtivo = document.getElementById('check-filtro').checked;
+
+        // Pega as configurações para saber as palavras a ignorar
+        // NOTA: Chamamos o servidor apenas para pegar as configurações!
+        const settings = await fetch('/api/settings').then(r => r.json()).catch(e => ({}));
+        
+        const termosIgnorados = (settings.ignorar || "")
+            .split(',')
+            .map(t => t.trim().toLowerCase())
+            .filter(t => t.length > 0);
+
+        // Pega a lista de pacientes (do servidor, só uma vez!)
+        const pacientes = await fetch('/api/pacientes').then(r => r.json()).catch(e => ({}));
+
+        if (agendaBruta.length === 0) {
+            div.innerHTML = '<p>Nenhum evento encontrado para o período.</p>';
+            return;
+        }
+        
+        // Aplica o filtro na lista que JÁ ESTÁ na memória
+        const agendaFiltrada = agendaBruta.filter(evt => {
+            if (!filtroAtivo) return true; // Se desligado, mostra tudo
+
+            const titulo = (evt.titulo || "").toLowerCase();
+            const ehLixo = termosIgnorados.some(termo => titulo.includes(termo));
+            return !ehLixo;
+        });
+
+        if (agendaFiltrada.length === 0 && agendaBruta.length > 0) {
+            div.innerHTML = '<p style="color: blue;">Todos os eventos foram filtrados.</p>';
+            return;
+        }
+
+        // Renderiza a lista filtrada
+        agendaFiltrada.forEach(evt => {
+            const nome = evt.titulo.replace(/Consulta\s?-?\s?/i, '').trim();
+            const telefone = pacientes[nome];
+
+            const linha = document.createElement('div');
+            linha.className = 'item';
+
+            if (telefone) {
+                linha.innerHTML = `
+                    <div>✅ <b>${nome}</b> (${evt.data})</div>
+                    <a href="https://web.whatsapp.com/send?phone=${telefone}" target="_blank" class="btn-zap">WhatsApp</a>
+                `;
+            } else {
+                linha.innerHTML = `
+                    <div>❌ <b>${nome}</b> (${evt.data})</div>
+                    <div>
+                        <input id="ddi-${nome}" value="+55" size="2">
+                        <input id="tel-${nome}" placeholder="Telefone">
+                        <button onclick="salvarTelefone('${nome}')">💾</button>
+                    </div>
+                `;
+            }
+            div.appendChild(linha);
+        });
+    }
+
+    // Função ATUALIZADA: Recarrega a Agenda do Servidor e chama a renderização
+    async function carregarAgendaDoServidor() {
+        const div = document.getElementById('lista');
+        div.innerHTML = 'Carregando agenda...';
+        agendaBruta = []; // Limpa o cache
+        
+        try {
+            // Pede dados ao servidor
+            const resAgenda = await fetch('/api/agenda');
+            const agenda = await resAgenda.json();
+
+            if (agenda.error) {
+                div.innerHTML = `<p style="color:red">Erro: ${agenda.error}</p>`;
+                return;
+            }
+            
+            if (!Array.isArray(agenda)) {
+                div.innerHTML = `<p style="color:red">Erro: Resposta inválida do servidor.</p>`;
+                return;
+            }
+
+            agendaBruta = agenda; // SALVA o resultado da Google Agenda
+            renderizarAgenda(); // Renderiza usando o filtro
+
+        } catch (erro) {
+            div.innerHTML = `<p style="color:red">Erro de conexão: ${erro.message}</p>`;
+        }
+    }
+
+    // Função do botão de filtro: Apenas muda o estado e RE-RENDERIZA (muito rápido)
+    async function alternarFiltro() {
+        const checkbox = document.getElementById('check-filtro');
+        const estaAtivo = checkbox.checked;
+
+        // Salva o estado do filtro no servidor
+        await fetch('/api/settings', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ filtroAtivo: estaAtivo })
+        });
+        
+        // APENAS renderiza a lista salva! (Sem delay)
+        renderizarAgenda(); 
+    }
+    
+    // --- LÓGICA DE SALVAR TELEFONE (Mantida) ---
+    async function salvarTelefone(nome) {
+        const ddi = document.getElementById(`ddi-${nome}`).value;
+        const tel = document.getElementById(`tel-${nome}`).value;
+
+        await fetch('/api/salvar', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ nome: nome, telefone: ddi + tel })
+        });
+        carregarAgendaDoServidor(); // Recarrega a lista do servidor após salvar novo contato
+    }
+
+
+    // --- INICIALIZAÇÃO ---
+    window.onload = async () => {
+        // Inicialização de Drag and Drop
+        configurarDrop('drop-cred', 'credenciais');
+        configurarDrop('drop-banco', 'banco');
+        
+        // Pega o estado do filtro e do checkbox
+        try {
+            const res = await fetch('/api/settings');
+            const cfg = await res.json();
+            document.getElementById('check-filtro').checked = cfg.filtroAtivo !== false;
+        } catch(e) { console.error(e); }
+
+        // Carrega a agenda do servidor pela primeira vez
+        carregarAgendaDoServidor();
+    };
+
+    // ... (Mantenha aqui a sua função configurarDrop) ...
+    // É importante garantir que esta função esteja incluída no seu arquivo
+    function configurarDrop(idElemento, nomeCampo) {
+        const zona = document.getElementById(idElemento);
+        
+        zona.ondragover = (e) => { e.preventDefault(); zona.classList.add('dragover'); };
+        zona.ondragleave = () => zona.classList.remove('dragover');
+        
+        zona.ondrop = async (e) => {
+            e.preventDefault();
+            zona.classList.remove('dragover');
+
+            const senha = document.getElementById('senha-admin').value;
+            if (!senha) return alert("Digite a senha de Admin!");
+
+            if (e.dataTransfer.files.length === 0) return;
+
+            const dados = new FormData();
+            dados.append(nomeCampo, e.dataTransfer.files[0]);
+            dados.append('senha', senha);
+
+            zona.innerText = "Enviando...";
+            
+            try {
+                const req = await fetch('/api/upload', { method: 'POST', body: dados });
+                const res = await req.json();
+                
+                if (res.success) zona.innerText = "✅ Atualizado!";
+                else zona.innerText = "❌ Erro: " + res.message;
+                
+            } catch (err) {
+                zona.innerText = "❌ Falha na conexão";
+            }
+        };
+    }
+</script>
+---
+### 2. Atualizar o Backend (server.js)
+
+O Backend precisa parar de filtrar. A única coisa que ele deve fazer é **devolver a lista completa** de eventos.
+
+**Substitua a sua função `listarEventos` no `server.js` por esta:**
+
+```javascript
+// --- SUBSTITUA A FUNÇÃO listarEventos POR ESTA ---
+async function listarEventos(auth) {
+    const calendar = google.calendar({ version: 'v3', auth });
+
+    const settings = getSettings();
+    const diasParaVer = settings.diasEscopo || 1;
+
+    const inicio = new Date();
+    inicio.setDate(inicio.getDate() + 1); // Começa amanhã
+    inicio.setHours(0, 0, 0, 0);
+
+    const fim = new Date(inicio);
+    fim.setDate(fim.getDate() + (diasParaVer - 1)); // Soma os dias configurados
+    fim.setHours(23, 59, 59, 999);
+
+    const res = await calendar.events.list({
+        calendarId: 'primary',
+        timeMin: inicio.toISOString(),
+        timeMax: fim.toISOString(),
+        singleEvents: true,
+        orderBy: 'startTime',
+    });
+
+    const eventosBrutos = res.data.items || [];
+
+    // NÃO HÁ MAIS FILTRO NO BACKEND. O FILTRO É FEITO NO FRONTEND.
+    
+    return eventosBrutos.map(evento => {
+        const dataObj = new Date(evento.start.dateTime || evento.start.date);
+        const dataFormatada = dataObj.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}) + 
+                              " às " + 
+                              dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+        return {
+            titulo: evento.summary || 'Sem Título',
+            data: dataFormatada
+        };
+    });
+}
+</body>
+
+</html>

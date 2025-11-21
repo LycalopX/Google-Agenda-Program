@@ -142,7 +142,7 @@ async function listarEventos(auth) {
     inicio.setHours(0, 0, 0, 0);
 
     const fim = new Date(inicio);
-    fim.setDate(fim.getDate() + (diasParaVer - 1)); 
+    fim.setDate(fim.getDate() + (diasParaVer - 1));
     fim.setHours(23, 59, 59, 999);
 
     const res = await calendar.events.list({
@@ -158,9 +158,9 @@ async function listarEventos(auth) {
     // NÃO FILTRAMOS MAIS AQUI. DEVOLVEMOS TUDO.
     return eventosBrutos.map(evento => {
         const dataObj = new Date(evento.start.dateTime || evento.start.date);
-        const dataFormatada = dataObj.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}) + 
-                              " às " + 
-                              dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const dataFormatada = dataObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) +
+            " às " +
+            dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
         return {
             titulo: evento.summary || 'Sem Título',

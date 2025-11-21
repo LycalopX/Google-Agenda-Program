@@ -4,25 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assistente de Agenda</title>
+    <link rel="icon" type="image/png" href="/assets/icon.png">
     <style>
-        /* Paleta de Cores (Inspirado em Cobalt.tools) */
+        /* Estilo adaptado de app.css do Cobalt-Tools */
         :root {
-            --background: #0d1117; /* Fundo principal escuro */
-            --surface: #161b22;   /* Cor de containers, inputs */
-            --primary: #c9d1d9;   /* Cor do texto principal */
-            --secondary: #8b949e; /* Cor do texto secundário, placeholders */
-            --accent: #f778ba;    /* Rosa/Roxo para destaques */
-            --accent-hover: #ff99cc;
-            --border: #30363d;    /* Cor das bordas */
-            --success: #3fb950;   /* Verde para status de sucesso */
-            --danger: #f85149;     /* Vermelho para alertas */
+            --primary-text: #e1e1e1;
+            --secondary-text: #818181;
+            --background: #131313;
+            --surface: #191919;
+            --surface-hover: #242424;
+            --border: #383838;
+            --accent: #BE3455; /* Cor de destaque adaptada */
+            --accent-hover: #d44a6a;
+            --green: #37aa42;
+            --danger: #ed2236;
+            --border-radius: 11px;
         }
 
-        /* Reset e Base */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: "IBM Plex Mono", monospace, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         html, body {
@@ -30,39 +35,36 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--background);
-            color: var(--primary);
+            color: var(--primary-text);
             display: grid;
             place-items: center;
             padding: 20px;
         }
 
-        /* Container Principal */
         main {
             width: 100%;
             max-width: 700px;
             background-color: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 8px;
-            overflow: hidden;
+            border-radius: var(--border-radius);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
         }
 
         h1 {
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             font-weight: 500;
             text-align: center;
-            padding: 20px;
-            background-color: rgba(0,0,0,0.2);
+            padding: 18px;
+            background-color: var(--background);
             border-bottom: 1px solid var(--border);
         }
 
-        /* Abas */
         .tabs {
             display: flex;
-            padding: 10px;
+            padding: 12px;
             gap: 10px;
+            border-bottom: 1px solid var(--border);
         }
 
         .tab {
@@ -70,59 +72,50 @@
             padding: 10px;
             text-align: center;
             cursor: pointer;
-            border-radius: 6px;
+            border-radius: 8px;
             font-weight: 500;
-            color: var(--secondary);
+            font-size: 0.9rem;
+            color: var(--secondary-text);
             transition: background-color 0.2s ease, color 0.2s ease;
         }
 
         .tab:hover {
-            background-color: rgba(255,255,255,0.05);
+            background-color: var(--surface-hover);
         }
 
         .tab.active {
             background-color: var(--accent);
-            color: var(--background);
+            color: white;
         }
 
-        /* Conteúdo das Abas */
-        .content {
-            display: none;
-            padding: 20px;
-            background-color: var(--surface);
-        }
+        .content { display: none; padding: 20px; }
         .content.active { display: block; }
-        
-        /* Estilos de Inputs e Botões */
-        button, .btn {
+
+        button {
             background-color: var(--accent);
-            color: var(--background);
+            color: white;
             border: none;
             padding: 10px 15px;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 500;
+            font-size: 0.9rem;
             transition: background-color 0.2s ease;
         }
-        button:hover, .btn:hover { background-color: var(--accent-hover); }
+        button:hover { background-color: var(--accent-hover); }
 
         input, textarea {
             background-color: var(--background);
             border: 1px solid var(--border);
-            color: var(--primary);
+            color: var(--primary-text);
             padding: 10px;
-            border-radius: 6px;
+            border-radius: 8px;
             width: 100%;
+            font-size: 0.9rem;
         }
-        input::placeholder, textarea::placeholder { color: var(--secondary); }
+        
+        hr { border: none; border-top: 1px solid var(--border); margin: 25px 0; }
 
-        hr {
-            border: none;
-            border-top: 1px solid var(--border);
-            margin: 20px 0;
-        }
-
-        /* Lista de Agenda */
         .item {
             border-bottom: 1px solid var(--border);
             padding: 15px 5px;
@@ -134,7 +127,7 @@
         .item:last-child { border-bottom: none; }
         .item-info { flex-grow: 1; }
         .item-info b { font-weight: 500; }
-        .item-info small { color: var(--secondary); font-size: 0.9em; }
+        .item-info small { color: var(--secondary-text); }
 
         .btn-zap {
             background-color: #25D366;
@@ -146,29 +139,21 @@
             font-weight: 500;
         }
 
-        .save-group { display: flex; gap: 5px; }
-        .save-group input { flex-grow: 1; }
-        .save-group button { background-color: var(--secondary); }
-
-        /* Aba de Configurações */
-        .config-section {
-            margin-bottom: 25px;
-        }
         .config-section label {
             display: block;
             margin-bottom: 8px;
             font-weight: 500;
-            color: var(--secondary);
+            color: var(--secondary-text);
         }
         
         .drop-zone {
             border: 2px dashed var(--border);
             padding: 25px;
             text-align: center;
-            margin-top: 10px;
+            margin-top: 15px;
             cursor: pointer;
-            border-radius: 6px;
-            color: var(--secondary);
+            border-radius: 8px;
+            color: var(--secondary-text);
             transition: all 0.2s ease;
         }
         .drop-zone.dragover {
@@ -179,148 +164,128 @@
     </style>
 </head>
 
-<body>
+<body data-theme="dark">
     <main>
         <h1>Assistente de Agenda</h1>
-
         <div class="tabs">
             <div class="tab active" data-tab="agenda" onclick="abrirAba('agenda')">Agenda</div>
             <div class="tab" data-tab="config" onclick="abrirAba('config')">Configurações</div>
         </div>
 
-        <!-- Conteúdo da Agenda -->
         <div id="agenda" class="content active">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-                <button onclick="carregarAgenda()">Atualizar Lista</button>
-                <label style="display: flex; align-items: center; cursor: pointer;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <button onclick="carregarDadosIniciais()">Atualizar</button>
+                <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.9rem;">
                     <input type="checkbox" id="check-filtro" onchange="alternarFiltro()" style="width: auto; margin-right: 8px;">
-                    Ocultar eventos ignorados
+                    Ocultar ignorados
                 </label>
             </div>
-            <div id="lista">Carregando...</div>
+            <div id="lista"></div>
         </div>
 
-        <!-- Conteúdo das Configurações -->
         <div id="config" class="content">
             <div class="config-section">
-                <label for="conf-dias">Visualizar agenda dos próximos</label>
+                <label for="conf-dias">Visualizar próximos</label>
                 <input type="number" id="conf-dias" value="1" min="1" style="width: 70px;"> dias
-                
-                <label for="conf-ignorar" style="margin-top: 15px;">Ignorar eventos que contenham (separe por vírgula)</label>
+                <label for="conf-ignorar" style="margin-top: 15px;">Ignorar eventos com os termos (separados por vírgula)</label>
                 <textarea id="conf-ignorar" rows="2" placeholder="almoço, feriado, particular..."></textarea>
-                
                 <button onclick="salvarConfig()" style="margin-top: 15px;">Salvar Preferências</button>
             </div>
-
             <hr>
-
             <div class="config-section">
                 <label for="senha-admin">Senha de Admin para Upload</label>
                 <input type="password" id="senha-admin" placeholder="Padrão: admin">
-                
-                <div class="drop-zone" id="drop-cred">Arraste <b>credentials.json</b> aqui</div>
-                <div class="drop-zone" id="drop-banco" style="margin-top: 15px;">Arraste <b>pacientes.json</b> aqui</div>
+                <div class="drop-zone" id="drop-cred">Arraste <b>credentials.json</b></div>
+                <div class="drop-zone" id="drop-banco">Arraste <b>pacientes.json</b></div>
             </div>
         </div>
     </main>
 
     <script>
-        // Variáveis globais para armazenar os dados e configurações
-        let allEvents = [];
-        let allPacientes = {};
-        let currentSettings = {};
-    
+        let allEvents = [], allPacientes = {}, currentSettings = {};
+
         function abrirAba(nomeAba) {
             document.querySelectorAll('.content').forEach(d => d.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            
             document.getElementById(nomeAba).classList.add('active');
             document.querySelector(`.tab[data-tab='${nomeAba}']`).classList.add('active');
-    
-            if (nomeAba === 'config') carregarConfig();
+            if (nomeAba === 'config') carregarConfigParaTela();
         }
-    
-        async function carregarAgenda() {
+
+        async function carregarDadosIniciais() {
             const div = document.getElementById('lista');
             div.innerHTML = 'Carregando...';
-    
             try {
                 const [resAgenda, resPacientes, resSettings] = await Promise.all([
-                    fetch('/api/agenda'),
-                    fetch('/api/pacientes'),
-                    fetch('/api/settings')
+                    fetch('/api/agenda'), fetch('/api/pacientes'), fetch('/api/settings')
                 ]);
-    
-                if (!resAgenda.ok || !resPacientes.ok || !resSettings.ok) {
-                    throw new Error("Falha na comunicação com o servidor.");
-                }
-    
-                const agendaData = await resAgenda.json();
-                const pacientesData = await resPacientes.json();
-                const settingsData = await resSettings.json();
-    
-                if (agendaData.error) throw new Error(agendaData.error);
+                if (!resAgenda.ok || !resPacientes.ok || !resSettings.ok) throw new Error("Falha ao comunicar com o servidor.");
                 
+                const agendaData = await resAgenda.json();
+                if (agendaData.error) throw new Error(agendaData.error);
+
                 allEvents = agendaData;
-                allPacientes = pacientesData;
-                currentSettings = settingsData;
-    
-                const checkbox = document.getElementById('check-filtro');
-                if (checkbox) checkbox.checked = currentSettings.filtroAtivo !== false;
-    
+                allPacientes = await resPacientes.json();
+                currentSettings = await resSettings.json();
+
+                document.getElementById('check-filtro').checked = currentSettings.filtroAtivo !== false;
                 renderAgenda();
-    
             } catch (erro) {
                 div.innerHTML = `<p style="color: var(--danger)">${erro.message}</p>`;
             }
         }
-    
+        
+        // FUNÇÃO DE RENDERIZAÇÃO 100% SEGURA
         function renderAgenda() {
             const listaDiv = document.getElementById('lista');
-            // Método seguro para limpar a lista, sem usar innerHTML
+            if (!listaDiv) return console.error("FATAL: #lista não existe mais.");
+            
             while (listaDiv.firstChild) {
                 listaDiv.removeChild(listaDiv.firstChild);
             }
-    
-            const filtroAtivo = currentSettings.filtroAtivo !== false;
-            const termosIgnorados = (currentSettings.ignorar || "")
-                .split(',')
-                .map(t => t.trim().toLowerCase())
-                .filter(t => t.length > 0);
-    
+
+            const filtroAtivo = document.getElementById('check-filtro').checked;
+            const termosIgnorados = (currentSettings.ignorar || "").split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
             const eventosParaExibir = allEvents.filter(evt => {
                 if (!filtroAtivo) return true;
                 const titulo = (evt.titulo || "").toLowerCase();
-                const ehLixo = termosIgnorados.some(termo => titulo.includes(termo));
-                return !ehLixo;
+                return !termosIgnorados.some(termo => titulo.includes(termo));
             });
-    
+
             if (eventosParaExibir.length === 0) {
                 const p = document.createElement('p');
                 p.textContent = 'Nenhum evento para exibir.';
                 p.style.textAlign = 'center';
-                p.style.color = 'var(--secondary)';
                 p.style.padding = '20px 0';
                 listaDiv.appendChild(p);
                 return;
             }
-    
+
             const fragment = document.createDocumentFragment();
             eventosParaExibir.forEach(evt => {
-                const nome = evt.titulo.replace(/Consulta\s?-?\s?/i, '').trim();
+                const nome = (evt.titulo || 'Sem Título').replace(/Consulta\s?-?\s?/i, '').trim();
                 const telefone = allPacientes[nome];
-    
+
+                // Criação de Elementos (Método 100% seguro)
                 const linha = document.createElement('div');
                 linha.className = 'item';
+
+                const info = document.createElement('div');
+                info.className = 'item-info';
                 
-                let statusIconHtml = telefone ? `<span style="color: var(--success)">✅</span>` : `<span style="color: var(--danger)">❌</span>`;
-    
-                const itemInfo = document.createElement('div');
-                itemInfo.className = 'item-info';
-                itemInfo.innerHTML = `${statusIconHtml} <b>${nome}</b><br><small>${evt.data}</small>`;
+                const status = document.createElement('span');
+                status.textContent = telefone ? '✅ ' : '❌ ';
+                status.style.color = telefone ? 'var(--green)' : 'var(--danger)';
                 
-                linha.appendChild(itemInfo);
-    
+                const nomeEl = document.createElement('b');
+                nomeEl.textContent = nome;
+                
+                const dataEl = document.createElement('small');
+                dataEl.textContent = evt.data;
+                
+                info.append(status, nomeEl, document.createElement('br'), dataEl);
+                linha.appendChild(info);
+
                 if (telefone) {
                     const link = document.createElement('a');
                     link.href = `https://web.whatsapp.com/send?phone=${telefone}`;
@@ -330,126 +295,108 @@
                     linha.appendChild(link);
                 } else {
                     const saveGroup = document.createElement('div');
-                    saveGroup.className = 'save-group';
-                    saveGroup.innerHTML = `
-                        <input id="ddi-${nome}" value="+55" style="width: 55px; text-align: center;">
-                        <input id="tel-${nome}" placeholder="Telefone">
-                        <button>Salvar</button>
-                    `;
-                    saveGroup.querySelector('button').onclick = () => salvarTelefone(nome);
+                    saveGroup.style.display = 'flex';
+                    saveGroup.style.gap = '5px';
+
+                    const ddiInput = document.createElement('input');
+                    ddiInput.id = `ddi-${nome}`;
+                    ddiInput.value = "+55";
+                    ddiInput.style.width = "55px";
+                    
+                    const telInput = document.createElement('input');
+                    telInput.id = `tel-${nome}`;
+                    telInput.placeholder = "Telefone";
+
+                    const saveBtn = document.createElement('button');
+                    saveBtn.textContent = 'Salvar';
+                    saveBtn.onclick = () => salvarTelefone(nome);
+
+                    saveGroup.append(ddiInput, telInput, saveBtn);
                     linha.appendChild(saveGroup);
                 }
                 fragment.appendChild(linha);
             });
             listaDiv.appendChild(fragment);
         }
-    
+
         async function salvarTelefone(nome) {
             const ddi = document.getElementById(`ddi-${nome}`).value;
             const tel = document.getElementById(`tel-${nome}`).value;
-    
             const res = await fetch('/api/salvar', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ nome: nome, telefone: ddi + tel })
+                body: JSON.stringify({ nome, telefone: ddi + tel })
             });
             const json = await res.json();
-    
             if (json.success) {
-                const numeroLimpo = (ddi + tel).replace(/\D/g, '');
-                allPacientes[nome] = numeroLimpo;
+                allPacientes[nome] = (ddi + tel).replace(/\D/g, '');
                 renderAgenda();
             } else {
                 alert("Erro: " + (json.message || "Não foi possível salvar."));
             }
         }
-    
-        async function carregarConfig() {
-            try {
-                const res = await fetch('/api/settings');
-                const json = await res.json();
-                currentSettings = json;
-    
-                if(json.diasEscopo) document.getElementById('conf-dias').value = json.diasEscopo;
-                if(json.ignorar) document.getElementById('conf-ignorar').value = json.ignorar;
-            } catch(e) { console.error(e); }
+
+        function carregarConfigParaTela() {
+            document.getElementById('conf-dias').value = currentSettings.diasEscopo || 1;
+            document.getElementById('conf-ignorar').value = currentSettings.ignorar || "";
         }
-    
+
         async function salvarConfig() {
             const dias = document.getElementById('conf-dias').value;
             const ignorar = document.getElementById('conf-ignorar').value;
-            
             await fetch('/api/settings', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ 
-                    diasEscopo: parseInt(dias),
-                    ignorar: ignorar
-                })
+                body: JSON.stringify({ diasEscopo: parseInt(dias), ignorar })
             });
             alert("Preferências salvas!");
-            carregarAgenda();
+            carregarDadosIniciais();
         }
-    
+
         async function alternarFiltro() {
-            const estaAtivo = document.getElementById('check-filtro').checked;
-            currentSettings.filtroAtivo = estaAtivo;
-    
+            currentSettings.filtroAtivo = document.getElementById('check-filtro').checked;
             await fetch('/api/settings', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ filtroAtivo: estaAtivo })
+                body: JSON.stringify({ filtroAtivo: currentSettings.filtroAtivo })
             });
-    
             renderAgenda();
         }
-    
-        function configurarDrop(idElemento, nomeCampo) {
-            const zona = document.getElementById(idElemento);
+
+        function configurarDrop(id, fieldName) {
+            const zona = document.getElementById(id);
             if(!zona) return;
-            
             zona.ondragover = (e) => { e.preventDefault(); zona.classList.add('dragover'); };
             zona.ondragleave = () => zona.classList.remove('dragover');
-            
             zona.ondrop = async (e) => {
                 e.preventDefault();
                 zona.classList.remove('dragover');
-    
                 const senha = document.getElementById('senha-admin').value;
                 if (!senha) return alert("Digite a Senha de Admin!");
-    
-                if (e.dataTransfer.files.length === 0) return;
-    
+                const file = e.dataTransfer.files[0];
+                if (!file) return;
                 const dados = new FormData();
-                dados.append(nomeCampo, e.dataTransfer.files[0]);
+                dados.append(fieldName, file);
                 dados.append('senha', senha);
-    
-                zona.innerText = "Enviando...";
-                
+                zona.textContent = "Enviando...";
                 try {
                     const req = await fetch('/api/upload', { method: 'POST', body: dados });
                     const res = await req.json();
-                    
-                    if (res.success) {
-                        zona.innerText = "Atualizado com Sucesso!";
-                        if (nomeCampo === 'credenciais') carregarAgenda();
-                    } else {
-                        zona.innerText = `Erro: ${res.message}`;
-                    }
-                    
+                    zona.textContent = res.success ? "✅ Atualizado!" : `❌ Erro: ${res.message}`;
+                    if (res.success && fieldName === 'credenciais') carregarDadosIniciais();
                 } catch (err) {
-                    zona.innerText = "Falha na conexão.";
+                    zona.textContent = "❌ Falha na conexão.";
                 } finally {
-                    setTimeout(() => zona.innerText = `Arraste ${nomeCampo === 'credenciais' ? 'credentials.json' : 'pacientes.json'} aqui`, 3000);
+                    setTimeout(() => zona.textContent = `Arraste ${fieldName}.json aqui`, 3000);
                 }
             };
         }
-    
+
         window.onload = () => {
             configurarDrop('drop-cred', 'credenciais');
-            configurarDrop('drop-banco', 'banco');
-            carregarAgenda();
+            configurarDrop('drop-banco', 'pacientes');
+            carregarDadosIniciais();
         };
-        </script>
+    </script>
 </body>
 </html>

@@ -12,4 +12,5 @@ yarn-error.log*
 # Pastas de build (se usar compiladores no futuro)
 dist/
 build/
-dados/
+dados/*
+!dados/settings.json

@@ -31,7 +31,7 @@ const SETTINGS_PATH = path.join(DATA_FOLDER, 'settings.json');
 
 // --- GERENCIAMENTO DE CONFIGURAÇÕES ---
 function getSettings() {
-    const defaultSettings = { diasEscopo: 1, senhaAdmin: "admin" };
+    const defaultSettings = { diasEscopo: 1, senhaAdmin: "admin", ocultarIgnorados: true };
 
     try {
         // Tenta ler o arquivo
@@ -234,7 +234,35 @@ app.post('/api/salvar', (req, res) => {
         let db = {};
         if (fs.existsSync(DB_PATH)) db = JSON.parse(fs.readFileSync(DB_PATH));
 
-        db[nome] = numeroLimpo;
+        // Garante que o paciente seja um objeto para armazenar múltiplos dados
+        if (typeof db[nome] !== 'object' || db[nome] === null) {
+            db[nome] = {};
+        }
+
+        db[nome].telefone = numeroLimpo;
+        fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+app.post('/api/marcar-informado', (req, res) => {
+    try {
+        const { nome, informado } = req.body;
+
+        let db = {};
+        if (fs.existsSync(DB_PATH)) {
+            db = JSON.parse(fs.readFileSync(DB_PATH));
+        }
+
+        // Garante que o paciente exista como um objeto no DB
+        if (typeof db[nome] !== 'object' || db[nome] === null) {
+            db[nome] = {};
+        }
+
+        db[nome].informadoEm = informado ? new Date() : null;
+
         fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
         res.json({ success: true });
     } catch (e) {

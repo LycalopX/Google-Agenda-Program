@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,15 +27,37 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: "IBM Plex Mono", monospace, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: "IBM Plex Mono", monospace, sans-serif;
+        }
+
+        h1,
+        .tabs,
+        .tab,
+        button,
+        .drop-zone,
+        label,
+        .filter-bar {
+            user-select: none;
             -webkit-user-select: none;
         }
-        
-        h1, .tabs, .tab, button, .drop-zone, label { user-select: none; }
-        .item-info b, .item-info small, input, textarea { user-select: text; -webkit-user-select: text; }
-        input::placeholder, textarea::placeholder { user-select: none; }
 
-        html, body { height: 100%; }
+        .item-info b,
+        .item-info small,
+        input,
+        textarea {
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            user-select: none;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
 
         body {
             background-color: var(--background);
@@ -81,21 +104,35 @@
             font-weight: 500;
             font-size: 0.9rem;
             color: var(--secondary-text);
-            transition: background-color 0.2s ease, color 0.2s ease;
+            transition: all 0.2s ease;
         }
+
         .tab img {
-             width: 20px;
-             height: 20px;
+            width: 20px;
+            height: 20px;
         }
-        .tab:hover { background-color: var(--surface-hover); }
+
+        .tab:hover {
+            background-color: var(--surface-hover);
+        }
+
         .tab.active {
             background-color: var(--primary-text);
             color: var(--background);
         }
-        .tab.active img { filter: invert(1); }
 
-        .content { display: none; padding: 20px; }
-        .content.active { display: block; }
+        .tab.active img {
+            filter: invert(1);
+        }
+
+        .content {
+            display: none;
+            padding: 20px;
+        }
+
+        .content.active {
+            display: block;
+        }
 
         button {
             background-color: var(--accent);
@@ -108,9 +145,22 @@
             font-size: 0.9rem;
             transition: background-color 0.2s ease;
         }
-        button:hover { background-color: var(--accent-hover); }
 
-        input, textarea {
+        button.secondary {
+            background-color: var(--border);
+            color: var(--secondary-text);
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        button.secondary:hover {
+            background-color: #444;
+        }
+
+        input,
+        textarea {
             background-color: var(--background);
             border: 1px solid var(--border);
             color: var(--primary-text);
@@ -119,70 +169,150 @@
             width: 100%;
             font-size: 0.9rem;
         }
-        
-        hr { border: none; border-top: 1px solid var(--border); margin: 25px 0; }
+
+        /* Remover setas de incremento/decremento de input type="number" */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+            /* Firefox */
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 25px 0;
+        }
 
         .item {
             border-bottom: 1px solid var(--border);
-            padding: 15px 5px;
+            padding: 10px 5px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 15px;
+            transition: opacity 0.3s ease;
         }
-        .item:last-child { border-bottom: none; }
-        
-        .item-info { 
+
+        .item:last-child {
+            border-bottom: none;
+        }
+
+        .item-info {
             flex-grow: 1;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        .item-info b { font-weight: 500; }
-        .item-info small { color: var(--secondary-text); }
 
-        /* Estilo para os novos ícones de status */
+        .item-info b {
+            font-weight: 500;
+        }
+
+        .item-info small {
+            color: var(--secondary-text);
+        }
+
+        .item.strikethrough .item-info b,
+        .item.strikethrough .item-info small {
+            text-decoration: line-through;
+            opacity: 0.4;
+        }
+
+        .item-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-shrink: 0;
+        }
+
+        .item-actions input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+        }
+
         .status-icon {
             width: 36px;
+            /* Increased size */
             height: 36px;
+            /* Increased size */
             flex-shrink: 0;
             mask-size: cover;
             -webkit-mask-size: cover;
+            background-color: transparent;
+            /* Default, will be overridden by success/danger */
         }
+
         .status-icon.success {
             background-color: var(--green);
             mask-image: url(/assets/check.svg);
             -webkit-mask-image: url(/assets/check.svg);
         }
+
         .status-icon.danger {
             background-color: var(--danger);
             mask-image: url(/assets/x.svg);
             -webkit-mask-image: url(/assets/x.svg);
         }
 
-
         .btn-zap {
             background-color: white;
-            padding: 6px;
             border-radius: 50%;
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: transform 0.2s ease;
             flex-shrink: 0;
         }
-        .btn-zap:hover { transform: scale(1.1); }
-        .btn-zap svg { width: 28px; height: 28px; }
 
-        .config-section label {
+        .btn-zap:hover {
+            transform: scale(1.1);
+        }
+
+        .btn-zap svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .config-section label,
+        .filter-bar label {
             display: block;
             margin-bottom: 8px;
             font-weight: 500;
             color: var(--secondary-text);
         }
-        
+
+        .filter-bar {
+            background-color: var(--background);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .filter-bar label {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .filter-bar input {
+            width: auto;
+            margin-right: 8px;
+        }
+
         .drop-zone {
             border: 2px dashed var(--border);
             padding: 25px;
@@ -193,6 +323,7 @@
             color: var(--secondary-text);
             transition: all 0.2s ease;
         }
+
         .drop-zone.dragover {
             background-color: var(--background);
             border-color: var(--pink-accent);
@@ -205,24 +336,21 @@
     <main>
         <h1>Assistente de Agenda</h1>
         <div class="tabs">
-            <div class="tab active" data-tab="agenda" onclick="abrirAba('agenda')">
-                <img src="/assets/calendar.svg" alt="Ícone de Agenda">
-                Agenda
-            </div>
-            <div class="tab" data-tab="config" onclick="abrirAba('config')">
-                <img src="/assets/settings.svg" alt="Ícone de Configurações">
-                Configurações
-            </div>
+            <div class="tab active" data-tab="agenda" onclick="abrirAba('agenda')"><img src="/assets/calendar.svg"
+                    alt="Agenda"> Agenda</div>
+            <div class="tab" data-tab="config" onclick="abrirAba('config')"><img src="/assets/settings.svg"
+                    alt="Configurações"> Configurações</div>
         </div>
 
         <div id="agenda" class="content active">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <button onclick="carregarDadosIniciais()">Atualizar</button>
-                <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.9rem;">
-                    <input type="checkbox" id="check-filtro" onchange="alternarFiltro()" style="width: auto; margin-right: 8px;">
-                    Ocultar ignorados
-                </label>
+            <div class="filter-bar">
+                <label><input type="checkbox" id="filter-ocultar-ignorados" onchange="handleFilterChange()"> Ocultar da
+                    lista negra</label>
+                <label><input type="checkbox" id="filter-ocultar-notificados" onchange="handleFilterChange()"> Ocultar
+                    já notificados</label>
             </div>
+            <button onclick="carregarDadosIniciais()" style="width: 100%; margin-bottom: 20px;">Forçar Atualização do
+                Google</button>
             <div id="lista"></div>
         </div>
 
@@ -230,16 +358,21 @@
             <div class="config-section">
                 <label for="conf-dias">Visualizar próximos</label>
                 <input type="number" id="conf-dias" value="1" min="1" style="width: 70px;"> dias
-                <label for="conf-ignorar" style="margin-top: 15px;">Ignorar eventos com os termos (separados por vírgula)</label>
+                <label for="conf-ignorar" style="margin-top: 15px;">Termos para ignorar (lista negra, separados por
+                    vírgula)</label>
                 <textarea id="conf-ignorar" rows="2" placeholder="almoço, feriado, particular..."></textarea>
-                <button onclick="salvarConfig()" style="margin-top: 15px;">Salvar Preferências</button>
+                <button onclick="salvarConfig()" style="width: 100%; margin-top: 15px;">Salvar Preferências</button>
             </div>
             <hr>
-            <div class="config-section">
-                <label for="senha-admin">Senha de Admin para Upload</label>
-                <input type="password" id="senha-admin" placeholder="Padrão: admin">
-                <div class="drop-zone" id="drop-cred">Arraste <b>credentials.json</b></div>
-                <div class="drop-zone" id="drop-banco">Arraste <b>pacientes.json</b></div>
+            <button onclick="toggleAdvanced()" id="advanced-toggle-btn" class="secondary" style="width:100%;">Mostrar
+                Configurações Avançadas</button>
+            <div id="advanced-settings" style="display: none; margin-top: 20px;">
+                <div class="config-section" style="border: 1px solid var(--danger); padding: 15px; border-radius: 8px;">
+                    <label for="senha-admin">Senha de Admin para Upload</label>
+                    <input type="password" id="senha-admin" placeholder="Padrão: admin">
+                    <div class="drop-zone" id="drop-cred">Arraste <b>credentials.json</b></div>
+                    <div class="drop-zone" id="drop-banco">Arraste <b>pacientes.json</b></div>
+                </div>
             </div>
         </div>
     </main>
@@ -256,82 +389,101 @@
         }
 
         async function carregarDadosIniciais() {
-            const div = document.getElementById('lista');
-            div.innerHTML = 'Carregando...';
+            const listaDiv = document.getElementById('lista');
+            listaDiv.innerHTML = '<p style="text-align:center; padding: 20px 0;">Carregando...</p>';
             try {
                 const [resAgenda, resPacientes, resSettings] = await Promise.all([
                     fetch('/api/agenda'), fetch('/api/pacientes'), fetch('/api/settings')
                 ]);
                 if (!resAgenda.ok || !resPacientes.ok || !resSettings.ok) throw new Error("Falha ao comunicar com o servidor.");
-                
                 const agendaData = await resAgenda.json();
                 if (agendaData.error) throw new Error(agendaData.error);
-
                 allEvents = agendaData;
                 allPacientes = await resPacientes.json();
                 currentSettings = await resSettings.json();
 
-                document.getElementById('check-filtro').checked = currentSettings.filtroAtivo !== false;
+                // Persistir o estado dos filtros
+                document.getElementById('filter-ocultar-ignorados').checked = currentSettings.ocultarIgnorados !== false; // Checked by default
+                document.getElementById('filter-ocultar-notificados').checked = currentSettings.ocultarNotificados || false;
                 renderAgenda();
             } catch (erro) {
-                div.innerHTML = `<p style="color: var(--danger)">${erro.message}</p>`;
+                listaDiv.innerHTML = `<p style="color: var(--danger); text-align:center; padding: 20px 0;">${erro.message}</p>`;
             }
         }
-        
+
         function renderAgenda() {
             const listaDiv = document.getElementById('lista');
             if (!listaDiv) return;
-            
             while (listaDiv.firstChild) listaDiv.removeChild(listaDiv.firstChild);
 
-            const filtroAtivo = document.getElementById('check-filtro').checked;
+            const ocultarIgnorados = document.getElementById('filter-ocultar-ignorados').checked;
+            const ocultarNotificados = document.getElementById('filter-ocultar-notificados').checked;
             const termosIgnorados = (currentSettings.ignorar || "").split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
-            
+
             const eventosParaExibir = allEvents.filter(evt => {
-                if (!filtroAtivo) return true;
-                const titulo = (evt.titulo || "").toLowerCase();
-                return !termosIgnorados.some(termo => titulo.includes(termo));
+                const nome = (evt.titulo || '').replace(/Consulta\s?-?\s?/i, '').trim();
+                const paciente = allPacientes[nome] || {};
+
+                if (ocultarIgnorados) {
+                    const titulo = (evt.titulo || "").toLowerCase();
+                    if (termosIgnorados.some(termo => titulo.includes(termo))) return false;
+                }
+                if (ocultarNotificados && paciente.informadoEm) {
+                    return false;
+                }
+                return true;
             });
 
             if (eventosParaExibir.length === 0) {
-                const p = document.createElement('p');
-                p.textContent = 'Nenhum evento para exibir.';
-                p.style.textAlign = 'center';
-                p.style.padding = '20px 0';
-                listaDiv.appendChild(p);
+                listaDiv.innerHTML = `<p style="text-align:center; padding: 20px 0;">Nenhum paciente para exibir com os filtros atuais.</p>`;
                 return;
             }
 
             const fragment = document.createDocumentFragment();
             eventosParaExibir.forEach(evt => {
                 const nome = (evt.titulo || 'Sem Título').replace(/Consulta\s?-?\s?/i, '').trim();
-                const telefone = allPacientes[nome];
+                const paciente = allPacientes[nome] || {};
+                const informado = !!paciente.informadoEm;
+
                 const linha = document.createElement('div');
                 linha.className = 'item';
+                linha.id = `item-${nome.replace(/\s+/g, '-')}`;
+                if (informado) linha.classList.add('strikethrough');
+
                 const info = document.createElement('div');
                 info.className = 'item-info';
-                
-                // --- NOVO ÍCONE DE STATUS ---
-                const status = document.createElement('div');
-                status.className = telefone ? 'status-icon success' : 'status-icon danger';
-                
-                const textContainer = document.createElement('div');
+
+                // ÍCONE DE STATUS (check/x)
+                const statusIcon = document.createElement('div');
+                statusIcon.className = informado ? 'status-icon success' : 'status-icon danger'; // Classes corretas
+
+                const textContentDiv = document.createElement('div');
                 const nomeEl = document.createElement('b');
                 nomeEl.textContent = nome;
                 const dataEl = document.createElement('small');
                 dataEl.textContent = evt.data;
-                textContainer.append(nomeEl, document.createElement('br'), dataEl);
-                
-                info.append(status, textContainer);
-                linha.appendChild(info);
 
-                if (telefone) {
+                textContentDiv.append(nomeEl, document.createElement('br'), dataEl);
+                info.append(statusIcon, textContentDiv);
+
+                const actions = document.createElement('div');
+                actions.className = 'item-actions';
+
+                if (paciente.telefone) {
                     const link = document.createElement('a');
-                    link.href = `https://web.whatsapp.com/send?phone=${telefone}`;
+                    link.href = `https://web.whatsapp.com/send?phone=${paciente.telefone}`;
                     link.target = '_blank';
                     link.className = 'btn-zap';
+                    link.title = 'Abrir no WhatsApp';
                     link.innerHTML = `<svg viewBox="-1.66 0 740.824 740.824" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M630.056 107.658C560.727 38.271 468.525.039 370.294 0 167.891 0 3.16 164.668 3.079 367.072c-.027 64.699 16.883 127.855 49.016 183.523L0 740.824l194.666-51.047c53.634 29.244 114.022 44.656 175.481 44.682h.151c202.382 0 367.128-164.689 367.21-367.094.039-98.088-38.121-190.32-107.452-259.707m-259.758 564.8h-.125c-54.766-.021-108.483-14.729-155.343-42.529l-11.146-6.613-115.516 30.293 30.834-112.592-7.258-11.543c-30.552-48.58-46.689-104.729-46.665-162.379C65.146 198.865 202.065 62 370.419 62c81.521.031 158.154 31.81 215.779 89.482s89.342 134.332 89.311 215.859c-.07 168.242-136.987 305.117-305.211 305.117m167.415-228.514c-9.176-4.591-54.286-26.782-62.697-29.843-8.41-3.061-14.526-4.591-20.644 4.592-6.116 9.182-23.7 29.843-29.054 35.964-5.351 6.122-10.703 6.888-19.879 2.296-9.175-4.591-38.739-14.276-73.786-45.526-27.275-24.32-45.691-54.36-51.043-63.542-5.352-9.183-.569-14.148 4.024-18.72 4.127-4.11 9.175-10.713 13.763-16.07 4.587-5.356 6.116-9.182 9.174-15.303 3.059-6.122 1.53-11.479-.764-16.07-2.294-4.591-20.643-49.739-28.29-68.104-7.447-17.886-15.012-15.466-20.644-15.746-5.346-.266-11.469-.323-17.585-.323-6.117 0-16.057 2.296-24.468 11.478-8.41 9.183-32.112 31.374-32.112 76.521s32.877 88.763 37.465 94.885c4.587 6.122 64.699 98.771 156.741 138.502 21.891 9.45 38.982 15.093 52.307 19.323 21.981 6.979 41.983 5.994 57.793 3.633 17.628-2.633 54.285-22.19 61.932-43.616 7.646-21.426 7.646-39.791 5.352-43.617-2.293-3.826-8.41-6.122-17.585-10.714" fill="#000"/></svg>`;
-                    linha.appendChild(link);
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = informado;
+                    checkbox.title = informado ? 'Marcar como não notificado' : 'Marcar como notificado';
+                    checkbox.onchange = () => toggleInformado(nome, checkbox);
+
+                    actions.append(link, checkbox);
                 } else {
                     const saveGroup = document.createElement('div');
                     saveGroup.style.display = 'flex';
@@ -347,11 +499,30 @@
                     saveBtn.textContent = 'Salvar';
                     saveBtn.onclick = () => salvarTelefone(nome);
                     saveGroup.append(ddiInput, telInput, saveBtn);
-                    linha.appendChild(saveGroup);
+                    actions.appendChild(saveGroup);
                 }
+
+                linha.append(info, actions);
                 fragment.appendChild(linha);
             });
             listaDiv.appendChild(fragment);
+        }
+
+        async function toggleInformado(nome, checkbox) {
+            const informado = checkbox.checked;
+            const itemElement = document.getElementById(`item-${nome.replace(/\s+/g, '-')}`);
+            if (itemElement) {
+                itemElement.classList.toggle('strikethrough', informado);
+            }
+            if (!allPacientes[nome]) allPacientes[nome] = {};
+            allPacientes[nome].informadoEm = informado ? new Date().toISOString() : null;
+            await fetch('/api/marcar-informado', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, informado })
+            });
+            // Re-renderiza para aplicar os filtros de ocultar
+            renderAgenda();
         }
 
         async function salvarTelefone(nome) {
@@ -359,12 +530,13 @@
             const tel = document.getElementById(`tel-${nome}`).value;
             const res = await fetch('/api/salvar', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nome, telefone: ddi + tel })
             });
             const json = await res.json();
             if (json.success) {
-                allPacientes[nome] = (ddi + tel).replace(/\D/g, '');
+                if (!allPacientes[nome]) allPacientes[nome] = {};
+                allPacientes[nome].telefone = (ddi + tel).replace(/\D/g, '');
                 renderAgenda();
             } else {
                 alert("Erro: " + (json.message || "Não foi possível salvar."));
@@ -379,28 +551,42 @@
         async function salvarConfig() {
             const dias = document.getElementById('conf-dias').value;
             const ignorar = document.getElementById('conf-ignorar').value;
+            // Salva também o estado dos filtros
+            currentSettings.ocultarIgnorados = document.getElementById('filter-ocultar-ignorados').checked;
+            currentSettings.ocultarNotificados = document.getElementById('filter-ocultar-notificados').checked;
+
             await fetch('/api/settings', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ diasEscopo: parseInt(dias), ignorar })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    diasEscopo: parseInt(dias),
+                    ignorar: ignorar,
+                    ocultarIgnorados: currentSettings.ocultarIgnorados,
+                    ocultarNotificados: currentSettings.ocultarNotificados
+                })
             });
-            alert("Preferências salvas!");
+            alert("Preferências salvas! A lista será atualizada.");
             carregarDadosIniciais();
         }
 
-        async function alternarFiltro() {
-            currentSettings.filtroAtivo = document.getElementById('check-filtro').checked;
+        async function handleFilterChange() {
+            // Salva o estado dos filtros para persistência
+            currentSettings.ocultarIgnorados = document.getElementById('filter-ocultar-ignorados').checked;
+            currentSettings.ocultarNotificados = document.getElementById('filter-ocultar-notificados').checked;
             await fetch('/api/settings', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ filtroAtivo: currentSettings.filtroAtivo })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ocultarIgnorados: currentSettings.ocultarIgnorados,
+                    ocultarNotificados: currentSettings.ocultarNotificados
+                })
             });
             renderAgenda();
         }
 
         function configurarDrop(id, fieldName) {
             const zona = document.getElementById(id);
-            if(!zona) return;
+            if (!zona) return;
             zona.ondragover = (e) => { e.preventDefault(); zona.classList.add('dragover'); };
             zona.ondragleave = () => zona.classList.remove('dragover');
             zona.ondrop = async (e) => {
@@ -434,4 +620,5 @@
         };
     </script>
 </body>
+
 </html>

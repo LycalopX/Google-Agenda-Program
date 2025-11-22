@@ -314,9 +314,10 @@ app.post('/api/upload', (req, res) => {
 
 getSettings();
 
+const porta = 4040;
+
 // --- INICIALIZAÇÃO (MANTIDA A CORREÇÃO DO IMPORT DINÂMICO) ---
-const servidor = app.listen(0, async () => {
-    const porta = servidor.address().port;
+const servidor = app.listen(porta, async () => {
     console.log(`Servidor na porta: ${porta}`);
 
     // Solução híbrida para o 'open' (compatível v8 ou v11)

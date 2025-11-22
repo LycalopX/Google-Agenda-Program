@@ -170,7 +170,6 @@
             font-size: 0.9rem;
         }
 
-        /* Remover setas de incremento/decremento de input type="number" */
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -179,7 +178,6 @@
 
         input[type="number"] {
             -moz-appearance: textfield;
-            /* Firefox */
         }
 
         hr {
@@ -217,8 +215,7 @@
             color: var(--secondary-text);
         }
 
-        .item.strikethrough .item-info b,
-        .item.strikethrough .item-info small {
+        .item.strikethrough .item-info {
             text-decoration: line-through;
             opacity: 0.4;
         }
@@ -226,26 +223,23 @@
         .item-actions {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
             flex-shrink: 0;
         }
 
         .item-actions input[type="checkbox"] {
-            width: 22px;
-            height: 22px;
+            width: 40px;
+            height: 40px;
             cursor: pointer;
         }
 
         .status-icon {
             width: 36px;
-            /* Increased size */
             height: 36px;
-            /* Increased size */
             flex-shrink: 0;
             mask-size: cover;
             -webkit-mask-size: cover;
             background-color: transparent;
-            /* Default, will be overridden by success/danger */
         }
 
         .status-icon.success {
@@ -279,6 +273,32 @@
         .btn-zap svg {
             width: 24px;
             height: 24px;
+        }
+
+        .btn-edit-phone {
+            background-color: var(--surface-hover);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+            flex-shrink: 0;
+            padding: 0;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-edit-phone:hover {
+            transform: scale(1.1);
+        }
+
+        .btn-edit-phone svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--secondary-text);
+            stroke-width: 2;
         }
 
         .config-section label,
@@ -402,8 +422,7 @@
                 allPacientes = await resPacientes.json();
                 currentSettings = await resSettings.json();
 
-                // Persistir o estado dos filtros
-                document.getElementById('filter-ocultar-ignorados').checked = currentSettings.ocultarIgnorados !== false; // Checked by default
+                document.getElementById('filter-ocultar-ignorados').checked = currentSettings.ocultarIgnorados !== false;
                 document.getElementById('filter-ocultar-notificados').checked = currentSettings.ocultarNotificados || false;
                 renderAgenda();
             } catch (erro) {
@@ -423,14 +442,8 @@
             const eventosParaExibir = allEvents.filter(evt => {
                 const nome = (evt.titulo || '').replace(/Consulta\s?-?\s?/i, '').trim();
                 const paciente = allPacientes[nome] || {};
-
-                if (ocultarIgnorados) {
-                    const titulo = (evt.titulo || "").toLowerCase();
-                    if (termosIgnorados.some(termo => titulo.includes(termo))) return false;
-                }
-                if (ocultarNotificados && paciente.informadoEm) {
-                    return false;
-                }
+                if (ocultarIgnorados && termosIgnorados.some(termo => (evt.titulo || "").toLowerCase().includes(termo))) return false;
+                if (ocultarNotificados && paciente.informadoEm) return false;
                 return true;
             });
 
@@ -444,90 +457,117 @@
                 const nome = (evt.titulo || 'Sem Título').replace(/Consulta\s?-?\s?/i, '').trim();
                 const paciente = allPacientes[nome] || {};
                 const informado = !!paciente.informadoEm;
+                const uniqueId = nome.replace(/[^a-zA-Z0-9]/g, '');
 
                 const linha = document.createElement('div');
                 linha.className = 'item';
-                linha.id = `item-${nome.replace(/\s+/g, '-')}`;
+                linha.id = `item-${uniqueId}`;
                 if (informado) linha.classList.add('strikethrough');
 
                 const info = document.createElement('div');
                 info.className = 'item-info';
 
-                // ÍCONE DE STATUS (check/x)
                 const statusIcon = document.createElement('div');
-                statusIcon.className = informado ? 'status-icon success' : 'status-icon danger'; // Classes corretas
+                statusIcon.className = informado ? 'status-icon success' : 'status-icon danger';
 
                 const textContentDiv = document.createElement('div');
                 const nomeEl = document.createElement('b');
                 nomeEl.textContent = nome;
                 const dataEl = document.createElement('small');
                 dataEl.textContent = evt.data;
-
                 textContentDiv.append(nomeEl, document.createElement('br'), dataEl);
                 info.append(statusIcon, textContentDiv);
 
                 const actions = document.createElement('div');
                 actions.className = 'item-actions';
+                actions.id = `actions-${uniqueId}`;
 
-                if (paciente.telefone) {
-                    const link = document.createElement('a');
-                    link.href = `https://web.whatsapp.com/send?phone=${paciente.telefone}`;
-                    link.target = '_blank';
-                    link.className = 'btn-zap';
-                    link.title = 'Abrir no WhatsApp';
-                    link.innerHTML = `<svg viewBox="-1.66 0 740.824 740.824" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M630.056 107.658C560.727 38.271 468.525.039 370.294 0 167.891 0 3.16 164.668 3.079 367.072c-.027 64.699 16.883 127.855 49.016 183.523L0 740.824l194.666-51.047c53.634 29.244 114.022 44.656 175.481 44.682h.151c202.382 0 367.128-164.689 367.21-367.094.039-98.088-38.121-190.32-107.452-259.707m-259.758 564.8h-.125c-54.766-.021-108.483-14.729-155.343-42.529l-11.146-6.613-115.516 30.293 30.834-112.592-7.258-11.543c-30.552-48.58-46.689-104.729-46.665-162.379C65.146 198.865 202.065 62 370.419 62c81.521.031 158.154 31.81 215.779 89.482s89.342 134.332 89.311 215.859c-.07 168.242-136.987 305.117-305.211 305.117m167.415-228.514c-9.176-4.591-54.286-26.782-62.697-29.843-8.41-3.061-14.526-4.591-20.644 4.592-6.116 9.182-23.7 29.843-29.054 35.964-5.351 6.122-10.703 6.888-19.879 2.296-9.175-4.591-38.739-14.276-73.786-45.526-27.275-24.32-45.691-54.36-51.043-63.542-5.352-9.183-.569-14.148 4.024-18.72 4.127-4.11 9.175-10.713 13.763-16.07 4.587-5.356 6.116-9.182 9.174-15.303 3.059-6.122 1.53-11.479-.764-16.07-2.294-4.591-20.643-49.739-28.29-68.104-7.447-17.886-15.012-15.466-20.644-15.746-5.346-.266-11.469-.323-17.585-.323-6.117 0-16.057 2.296-24.468 11.478-8.41 9.183-32.112 31.374-32.112 76.521s32.877 88.763 37.465 94.885c4.587 6.122 64.699 98.771 156.741 138.502 21.891 9.45 38.982 15.093 52.307 19.323 21.981 6.979 41.983 5.994 57.793 3.633 17.628-2.633 54.285-22.19 61.932-43.616 7.646-21.426 7.646-39.791 5.352-43.617-2.293-3.826-8.41-6.122-17.585-10.714" fill="#000"/></svg>`;
+                const viewModeGroup = document.createElement('span');
+                viewModeGroup.id = `view-mode-${uniqueId}`;
+                viewModeGroup.style.display = paciente.telefone ? 'flex' : 'none';
+                viewModeGroup.style.alignItems = 'center';
+                viewModeGroup.style.gap = '10px';
 
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.checked = informado;
-                    checkbox.title = informado ? 'Marcar como não notificado' : 'Marcar como notificado';
-                    checkbox.onchange = () => toggleInformado(nome, checkbox);
+                const editModeGroup = document.createElement('div');
+                editModeGroup.id = `edit-mode-${uniqueId}`;
+                editModeGroup.style.display = 'none';
+                editModeGroup.style.gap = '5px';
 
-                    actions.append(link, checkbox);
-                } else {
-                    const saveGroup = document.createElement('div');
-                    saveGroup.style.display = 'flex';
-                    saveGroup.style.gap = '5px';
-                    const ddiInput = document.createElement('input');
-                    ddiInput.id = `ddi-${nome}`;
-                    ddiInput.value = "+55";
-                    ddiInput.style.width = "55px";
-                    const telInput = document.createElement('input');
-                    telInput.id = `tel-${nome}`;
-                    telInput.placeholder = "Telefone";
-                    const saveBtn = document.createElement('button');
-                    saveBtn.textContent = 'Salvar';
-                    saveBtn.onclick = () => salvarTelefone(nome);
-                    saveGroup.append(ddiInput, telInput, saveBtn);
-                    actions.appendChild(saveGroup);
-                }
+                const addPhoneGroup = document.createElement('div');
+                addPhoneGroup.id = `add-phone-mode-${uniqueId}`;
+                addPhoneGroup.style.display = paciente.telefone ? 'none' : 'flex';
+                addPhoneGroup.style.gap = '5px';
 
+                // Preenche o View Mode
+                const editButton = document.createElement('button');
+                editButton.className = 'btn-edit-phone';
+                editButton.title = 'Editar telefone';
+                editButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`;
+                editButton.onclick = () => toggleEditPhoneMode(nome, true);
+
+                const link = document.createElement('a');
+                link.href = `https://web.whatsapp.com/send?phone=${paciente.telefone}`;
+                link.target = '_blank';
+                link.className = 'btn-zap';
+                link.title = 'Abrir no WhatsApp';
+                link.innerHTML = `<svg viewBox="-1.66 0 740.824 740.824"><path fill-rule="evenodd" clip-rule="evenodd" d="M630.056 107.658C560.727 38.271 468.525.039 370.294 0 167.891 0 3.16 164.668 3.079 367.072c-.027 64.699 16.883 127.855 49.016 183.523L0 740.824l194.666-51.047c53.634 29.244 114.022 44.656 175.481 44.682h.151c202.382 0 367.128-164.689 367.21-367.094.039-98.088-38.121-190.32-107.452-259.707m-259.758 564.8h-.125c-54.766-.021-108.483-14.729-155.343-42.529l-11.146-6.613-115.516 30.293 30.834-112.592-7.258-11.543c-30.552-48.58-46.689-104.729-46.665-162.379C65.146 198.865 202.065 62 370.419 62c81.521.031 158.154 31.81 215.779 89.482s89.342 134.332 89.311 215.859c-.07 168.242-136.987 305.117-305.211 305.117m167.415-228.514c-9.176-4.591-54.286-26.782-62.697-29.843-8.41-3.061-14.526-4.591-20.644 4.592-6.116 9.182-23.7 29.843-29.054 35.964-5.351 6.122-10.703 6.888-19.879 2.296-9.175-4.591-38.739-14.276-73.786-45.526-27.275-24.32-45.691-54.36-51.043-63.542-5.352-9.183-.569-14.148 4.024-18.72 4.127-4.11 9.175-10.713 13.763-16.07 4.587-5.356 6.116-9.182 9.174-15.303 3.059-6.122 1.53-11.479-.764-16.07-2.294-4.591-20.643-49.739-28.29-68.104-7.447-17.886-15.012-15.466-20.644-15.746-5.346-.266-11.469-.323-17.585-.323-6.117 0-16.057 2.296-24.468 11.478-8.41 9.183-32.112 31.374-32.112 76.521s32.877 88.763 37.465 94.885c4.587 6.122 64.699 98.771 156.741 138.502 21.891 9.45 38.982 15.093 52.307 19.323 21.981 6.979 41.983 5.994 57.793 3.633 17.628-2.633 54.285-22.19 61.932-43.616 7.646-21.426 7.646-39.791 5.352-43.617-2.293-3.826-8.41-6.122-17.585-10.714" fill="#000"/></svg>`;
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = informado;
+                checkbox.onchange = () => toggleInformado(nome);
+                viewModeGroup.append(editButton, link, checkbox);
+
+                // Preenche o Edit Mode
+                const ddiInputEdit = document.createElement('input');
+                ddiInputEdit.id = `edit-ddi-${uniqueId}`;
+                ddiInputEdit.style.width = "60px";
+                const telInputEdit = document.createElement('input');
+                telInputEdit.id = `edit-tel-${uniqueId}`;
+                telInputEdit.placeholder = "Telefone";
+                const saveEditBtn = document.createElement('button');
+                saveEditBtn.textContent = '💾';
+                saveEditBtn.onclick = () => salvarTelefone(nome, `edit-ddi-${uniqueId}`, `edit-tel-${uniqueId}`);
+                editModeGroup.append(ddiInputEdit, telInputEdit, saveEditBtn);
+
+                // Preenche o Add Phone Mode
+                const ddiInputAdd = document.createElement('input');
+                ddiInputAdd.id = `ddi-${uniqueId}`;
+                ddiInputAdd.value = "+55";
+                ddiInputAdd.style.width = "60px";
+                const telInputAdd = document.createElement('input');
+                telInputAdd.id = `tel-${uniqueId}`;
+                telInputAdd.placeholder = "Telefone";
+                const saveBtnAdd = document.createElement('button');
+                saveBtnAdd.textContent = 'Salvar';
+                saveBtnAdd.onclick = () => salvarTelefone(nome, `ddi-${uniqueId}`, `tel-${uniqueId}`);
+                addPhoneGroup.append(ddiInputAdd, telInputAdd, saveBtnAdd);
+
+                actions.append(viewModeGroup, editModeGroup, addPhoneGroup);
                 linha.append(info, actions);
                 fragment.appendChild(linha);
             });
             listaDiv.appendChild(fragment);
         }
 
-        async function toggleInformado(nome, checkbox) {
-            const informado = checkbox.checked;
-            const itemElement = document.getElementById(`item-${nome.replace(/\s+/g, '-')}`);
-            if (itemElement) {
-                itemElement.classList.toggle('strikethrough', informado);
+        function toggleEditPhoneMode(nome, entrar) {
+            const uniqueId = nome.replace(/[^a-zA-Z0-9]/g, '');
+            const viewMode = document.getElementById(`view-mode-${uniqueId}`);
+            const editMode = document.getElementById(`edit-mode-${uniqueId}`);
+            if (entrar) {
+                const telCompleto = (allPacientes[nome] || {}).telefone || "55";
+                document.getElementById(`edit-ddi-${uniqueId}`).value = telCompleto.substring(0, 2);
+                document.getElementById(`edit-tel-${uniqueId}`).value = telCompleto.substring(2);
+                viewMode.style.display = 'none';
+                editMode.style.display = 'flex';
+            } else {
+                viewMode.style.display = 'flex';
+                editMode.style.display = 'none';
             }
-            if (!allPacientes[nome]) allPacientes[nome] = {};
-            allPacientes[nome].informadoEm = informado ? new Date().toISOString() : null;
-            await fetch('/api/marcar-informado', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nome, informado })
-            });
-            // Re-renderiza para aplicar os filtros de ocultar
-            renderAgenda();
         }
 
-        async function salvarTelefone(nome) {
-            const ddi = document.getElementById(`ddi-${nome}`).value;
-            const tel = document.getElementById(`tel-${nome}`).value;
+        async function salvarTelefone(nome, ddiId, telId) {
+            const ddi = document.getElementById(ddiId).value;
+            const tel = document.getElementById(telId).value;
             const res = await fetch('/api/salvar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -539,51 +579,53 @@
                 allPacientes[nome].telefone = (ddi + tel).replace(/\D/g, '');
                 renderAgenda();
             } else {
-                alert("Erro: " + (json.message || "Não foi possível salvar."));
+                alert("Erro ao salvar: " + (json.message || "Desconhecido"));
             }
+        }
+
+        async function toggleInformado(nome) {
+            const paciente = allPacientes[nome] || {};
+            const novoEstado = !paciente.informadoEm;
+            paciente.informadoEm = novoEstado ? new Date().toISOString() : null;
+
+            const itemElement = document.getElementById(`item-${nome.replace(/[^a-zA-Z0-9]/g, '-')}`);
+            if (itemElement) itemElement.classList.toggle('strikethrough', novoEstado);
+
+            await fetch('/api/marcar-informado', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, informado: novoEstado })
+            });
+            renderAgenda();
         }
 
         function carregarConfigParaTela() {
             document.getElementById('conf-dias').value = currentSettings.diasEscopo || 1;
             document.getElementById('conf-ignorar').value = currentSettings.ignorar || "";
         }
-
         async function salvarConfig() {
             const dias = document.getElementById('conf-dias').value;
             const ignorar = document.getElementById('conf-ignorar').value;
-            // Salva também o estado dos filtros
             currentSettings.ocultarIgnorados = document.getElementById('filter-ocultar-ignorados').checked;
             currentSettings.ocultarNotificados = document.getElementById('filter-ocultar-notificados').checked;
-
             await fetch('/api/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    diasEscopo: parseInt(dias),
-                    ignorar: ignorar,
-                    ocultarIgnorados: currentSettings.ocultarIgnorados,
-                    ocultarNotificados: currentSettings.ocultarNotificados
-                })
+                body: JSON.stringify({ diasEscopo: parseInt(dias), ignorar, ocultarIgnorados: currentSettings.ocultarIgnorados, ocultarNotificados: currentSettings.ocultarNotificados })
             });
-            alert("Preferências salvas! A lista será atualizada.");
+            alert("Preferências salvas!");
             carregarDadosIniciais();
         }
-
         async function handleFilterChange() {
-            // Salva o estado dos filtros para persistência
             currentSettings.ocultarIgnorados = document.getElementById('filter-ocultar-ignorados').checked;
             currentSettings.ocultarNotificados = document.getElementById('filter-ocultar-notificados').checked;
             await fetch('/api/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ocultarIgnorados: currentSettings.ocultarIgnorados,
-                    ocultarNotificados: currentSettings.ocultarNotificados
-                })
+                body: JSON.stringify({ ocultarIgnorados: currentSettings.ocultarIgnorados, ocultarNotificados: currentSettings.ocultarNotificados })
             });
             renderAgenda();
         }
-
         function configurarDrop(id, fieldName) {
             const zona = document.getElementById(id);
             if (!zona) return;
@@ -612,7 +654,17 @@
                 }
             };
         }
-
+        function toggleAdvanced() {
+            const advancedDiv = document.getElementById('advanced-settings');
+            const btn = document.getElementById('advanced-toggle-btn');
+            if (advancedDiv.style.display === 'none') {
+                advancedDiv.style.display = 'block';
+                btn.textContent = 'Ocultar Configurações Avançadas';
+            } else {
+                advancedDiv.style.display = 'none';
+                btn.textContent = 'Mostrar Configurações Avançadas';
+            }
+        }
         window.onload = () => {
             configurarDrop('drop-cred', 'credenciais');
             configurarDrop('drop-banco', 'pacientes');

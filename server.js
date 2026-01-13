@@ -330,3 +330,5 @@ const servidor = app.listen(porta, async () => {
 
     open(`http://localhost:${porta}`).catch(e => mostrarErroFatal("Erro", "Falha ao abrir navegador"));
 });
+
+module.exports = app;

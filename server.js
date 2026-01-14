@@ -4,7 +4,6 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 const { google } = require('googleapis');
-const { authenticate } = require('@google-cloud/local-auth');
 
 const router = express.Router();
 
@@ -71,61 +70,37 @@ function prepararNumero(numeroBruto) {
     } catch (e) { return null; }
 }
 
-// Autenticação: Carrega token salvo ou pede novo login
+// Adicione esta função nova
+function getOAuthClient() {
+    if (!fs.existsSync(CREDENTIALS_PATH)) throw new Error("CREDENTIALS_MISSING");
+
+    
+    const content = fs.readFileSync(CREDENTIALS_PATH);
+    const keys = JSON.parse(content);
+    const key = keys.web || keys.installed;
+
+
+    // IMPORTANTE: Ajuste o domínio se necessário, mas mantenha o final /agenda/oauth2callback
+    const redirectUri = 'https://consultoriobw.com.br/agenda/oauth2callback';
+
+
+    return new google.auth.OAuth2(key.client_id, key.client_secret, redirectUri);
+}
+
+// Substitua a sua função carregarAuth antiga por esta versão simplificada
 async function carregarAuth() {
-    // 1. Verificação de Segurança: O credentials.json existe?
-    if (!fs.existsSync(CREDENTIALS_PATH)) {
-        throw new Error("Arquivo 'credentials.json' ausente. Vá em Configurações e faça o upload.");
-    }
-
-    let keys;
-    try {
-        const fileContent = fs.readFileSync(CREDENTIALS_PATH);
-        const json = JSON.parse(fileContent);
-
-        // O Google pode salvar como 'installed' ou 'web', pegamos qual tiver
-        keys = json.installed || json.web;
-        if (!keys) throw new Error("Formato inválido");
-    } catch (e) {
-        throw new Error("Arquivo 'credentials.json' corrompido/inválido.");
-    }
-
-    // 3. Monta o Cliente Oficial com o Crachá
-    // Isso garante que o Google saiba QUEM está pedindo (Identity)
-    const client = new google.auth.OAuth2(
-        keys.client_id,
-        keys.client_secret,
-        keys.redirect_uris ? keys.redirect_uris[0] : 'http://localhost'
-    );
-
-    // 4. Agora sim, verificamos se já temos o token do Usuário
     if (fs.existsSync(TOKEN_PATH)) {
         try {
+            const client = getOAuthClient();
             const token = JSON.parse(fs.readFileSync(TOKEN_PATH));
             client.setCredentials(token);
-            return client; // Retorna o cliente já montado e logado
+            return client;
         } catch (e) {
-            console.log("Token antigo inválido/ilegível. Vamos gerar um novo.");
+            console.log("Token inválido.");
         }
     }
-
-    // 5. Se não tem token (ou estava ruim), abre o navegador para logar
-    console.log("Iniciando novo login via navegador...");
-
-    // Usamos a lib auxiliar apenas para facilitar o fluxo de abrir janela
-    const localAuth = await authenticate({
-        scopes: SCOPES,
-        keyfilePath: CREDENTIALS_PATH,
-    });
-
-    // Pega as credenciais que a lib conseguiu e salva
-    if (localAuth.credentials) {
-        fs.writeFileSync(TOKEN_PATH, JSON.stringify(localAuth.credentials));
-        // Aplica no nosso cliente manual para garantir a consistência
-        client.setCredentials(localAuth.credentials);
-    }
-
-    return client;
+    // Se não tiver token, lança erro para o frontend saber que precisa redirecionar
+    throw new Error("AUTH_REQUIRED");
 }
 
 async function listarEventos(auth) {
@@ -215,6 +190,40 @@ const upload = multer({ storage: storage });
 router.use(express.json());
 router.use(express.static(path.join(__dirname, 'public')));
 
+// 1. O Front pede o link de login
+router.get('/api/auth-url', (req, res) => {
+    try {
+        const client = getOAuthClient();
+        const url = client.generateAuthUrl({
+            access_type: 'offline',
+            scope: SCOPES,
+            prompt: 'consent'
+        });
+        res.json({ url });
+    } catch (e) {
+        res.status(500).json({ error: "Erro no credentials.json" });
+    }
+});
+
+// 2. O Google devolve o usuário aqui
+router.get('/oauth2callback', async (req, res) => {
+    const code = req.query.code;
+    if (!code) return res.send("Erro: Sem código.");
+
+
+    try {
+        const client = getOAuthClient();
+        const { tokens } = await client.getToken(code);
+        client.setCredentials(tokens);
+        fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens));
+        
+        // Redireciona para a home da agenda
+        res.redirect('/agenda'); 
+    } catch (e) {
+        res.send("Erro ao gerar token: " + e.message);
+    }
+});
+
 router.get('/api/pacientes', (req, res) => {
     if (fs.existsSync(DB_PATH)) {
         res.json(JSON.parse(fs.readFileSync(DB_PATH)));
@@ -276,11 +285,13 @@ router.get('/api/agenda', async (req, res) => {
         const eventos = await listarEventos(auth);
         res.json(eventos);
     } catch (e) {
-        console.error(e);
-        // Se der erro de autenticação, apagamos o token para forçar login na próxima
-        if (e.message.includes('invalid_grant')) {
+        // ADICIONE ESTE BLOCO IF
+        if (e.message === "AUTH_REQUIRED" || e.message.includes('invalid_grant')) {
             if (fs.existsSync(TOKEN_PATH)) fs.unlinkSync(TOKEN_PATH);
+            return res.status(401).json({ error: "AUTH_REQUIRED" });
         }
+        // ... resto do seu tratamento de erro
+        console.error(e);
         res.status(500).json({ error: "Erro ao buscar agenda: " + e.message });
     }
 });

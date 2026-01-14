@@ -417,6 +417,15 @@
                     fetch('/agenda/api/pacientes'),
                     fetch('/agenda/api/settings')
                 ]);
+
+                if (resAgenda.status === 401) {
+                    console.log("Token expirado/inexistente. Redirecionando para login...");
+                    const authReq = await fetch('/agenda/api/auth-url');
+                    const authData = await authReq.json();
+                    window.location.href = authData.url; // Redireciona o navegador para o Google
+                    return;
+                }
+                
                 if (!resAgenda.ok || !resPacientes.ok || !resSettings.ok) throw new Error("Falha ao comunicar com o servidor.");
                 const agendaData = await resAgenda.json();
                 if (agendaData.error) throw new Error(agendaData.error);

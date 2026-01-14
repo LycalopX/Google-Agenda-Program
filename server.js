@@ -6,14 +6,14 @@ const { exec } = require('child_process');
 const { google } = require('googleapis');
 const { authenticate } = require('@google-cloud/local-auth');
 
-const app = express();
+const router = express.Router();
 
 // --- CONFIGURAÇÕES DO GOOGLE ---
 // Escopos: Que permissão precisamos? Apenas ler eventos.
 const SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
 
 // Define a pasta onde os dados sensíveis ficam
-const DATA_FOLDER = path.join(process.cwd(), 'dados');
+const DATA_FOLDER = path.join(__dirname, 'dados');
 
 // Garante que a pasta existe (se não existir, o código cria para evitar erro)
 if (!fs.existsSync(DATA_FOLDER)) {
@@ -78,7 +78,6 @@ async function carregarAuth() {
         throw new Error("Arquivo 'credentials.json' ausente. Vá em Configurações e faça o upload.");
     }
 
-    // 2. Lê as credenciais do App (O "Crachá" do Programa)
     let keys;
     try {
         const fileContent = fs.readFileSync(CREDENTIALS_PATH);
@@ -213,10 +212,10 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // --- ROTAS EXPRESS ---
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+router.use(express.json());
+router.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/api/pacientes', (req, res) => {
+router.get('/api/pacientes', (req, res) => {
     if (fs.existsSync(DB_PATH)) {
         res.json(JSON.parse(fs.readFileSync(DB_PATH)));
     } else {
@@ -224,7 +223,7 @@ app.get('/api/pacientes', (req, res) => {
     }
 });
 
-app.post('/api/salvar', (req, res) => {
+router.post('/api/salvar', (req, res) => {
     try {
         const { nome, telefone } = req.body;
         const numeroLimpo = prepararNumero(telefone);
@@ -247,7 +246,7 @@ app.post('/api/salvar', (req, res) => {
     }
 });
 
-app.post('/api/marcar-informado', (req, res) => {
+router.post('/api/marcar-informado', (req, res) => {
     try {
         const { nome, informado } = req.body;
 
@@ -271,7 +270,7 @@ app.post('/api/marcar-informado', (req, res) => {
 });
 
 // ROTA DE AGENDA REAL
-app.get('/api/agenda', async (req, res) => {
+router.get('/api/agenda', async (req, res) => {
     try {
         const auth = await carregarAuth();
         const eventos = await listarEventos(auth);
@@ -286,9 +285,9 @@ app.get('/api/agenda', async (req, res) => {
     }
 });
 // Rotas de Configuração 
-app.get('/api/settings', (req, res) => res.json(getSettings()));
+router.get('/api/settings', (req, res) => res.json(getSettings()));
 
-app.post('/api/settings', (req, res) => {
+router.post('/api/settings', (req, res) => {
     saveSettings(req.body);
     res.json({ success: true });
 });
@@ -296,7 +295,7 @@ app.post('/api/settings', (req, res) => {
 // Rota de Upload Drag & Drop 
 const uploadFields = upload.fields([{ name: 'credenciais', maxCount: 1 }, { name: 'banco', maxCount: 1 }]);
 
-app.post('/api/upload', (req, res) => {
+router.post('/api/upload', (req, res) => {
     uploadFields(req, res, function (err) {
         if (err) return res.status(500).json({ success: false, message: err.message });
 
@@ -316,19 +315,4 @@ getSettings();
 
 const porta = 4040;
 
-// --- INICIALIZAÇÃO (MANTIDA A CORREÇÃO DO IMPORT DINÂMICO) ---
-const servidor = app.listen(porta, async () => {
-    console.log(`Servidor na porta: ${porta}`);
-
-    // Solução híbrida para o 'open' (compatível v8 ou v11)
-    let open;
-    try {
-        open = require('open'); // Tenta CommonJS
-    } catch {
-        open = (await import('open')).default; // Fallback para ESM
-    }
-
-    open(`http://localhost:${porta}`).catch(e => mostrarErroFatal("Erro", "Falha ao abrir navegador"));
-});
-
-module.exports = app;
+module.exports = router;

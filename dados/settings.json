@@ -2,7 +2,7 @@
   "diasEscopo": 15,
   "senhaAdmin": "admin",
   "filtroAtivo": true,
-  "ignorar": "almoço, day, não estará, não vai, reagendar, não marcar, não agendar",
-  "ocultarIgnorados": true,
+  "ignorar": "almoço, day, não estará, reagendar, remarcar, não vai, não marcar, não agendar",
+  "ocultarIgnorados": false,
   "ocultarNotificados": false
 }

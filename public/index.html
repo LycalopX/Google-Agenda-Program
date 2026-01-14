@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assistente de Agenda</title>
-    <link rel="icon" type="image/png" href="/assets/icon.png?v=2">
-    <link rel="apple-touch-icon" href="/assets/icon.png?v=2">
+    <link rel="icon" type="image/png" href="assets/icon.png?v=2">
+    <link rel="apple-touch-icon" href="assets/icon.png?v=2">
     <style>
         :root {
             --primary-text: #e1e1e1;
@@ -244,14 +244,14 @@
 
         .status-icon.success {
             background-color: var(--green);
-            mask-image: url(/assets/check.svg);
-            -webkit-mask-image: url(/assets/check.svg);
+            mask-image: url(assets/check.svg);
+            -webkit-mask-image: url(assets/check.svg);
         }
 
         .status-icon.danger {
             background-color: var(--danger);
-            mask-image: url(/assets/x.svg);
-            -webkit-mask-image: url(/assets/x.svg);
+            mask-image: url(assets/x.svg);
+            -webkit-mask-image: url(assets/x.svg);
         }
 
         .btn-zap {
@@ -356,9 +356,9 @@
     <main>
         <h1>Assistente de Agenda</h1>
         <div class="tabs">
-            <div class="tab active" data-tab="agenda" onclick="abrirAba('agenda')"><img src="/assets/calendar.svg"
+            <div class="tab active" data-tab="agenda" onclick="abrirAba('agenda')"><img src="assets/calendar.svg"
                     alt="Agenda"> Agenda</div>
-            <div class="tab" data-tab="config" onclick="abrirAba('config')"><img src="/assets/settings.svg"
+            <div class="tab" data-tab="config" onclick="abrirAba('config')"><img src="assets/settings.svg"
                     alt="Configurações"> Configurações</div>
         </div>
 
@@ -413,7 +413,9 @@
             listaDiv.innerHTML = '<p style="text-align:center; padding: 20px 0;">Carregando...</p>';
             try {
                 const [resAgenda, resPacientes, resSettings] = await Promise.all([
-                    fetch('/api/agenda'), fetch('/api/pacientes'), fetch('/api/settings')
+                    fetch('/agenda/api/agenda'),
+                    fetch('/agenda/api/pacientes'),
+                    fetch('/agenda/api/settings')
                 ]);
                 if (!resAgenda.ok || !resPacientes.ok || !resSettings.ok) throw new Error("Falha ao comunicar com o servidor.");
                 const agendaData = await resAgenda.json();
@@ -568,7 +570,7 @@
         async function salvarTelefone(nome, ddiId, telId) {
             const ddi = document.getElementById(ddiId).value;
             const tel = document.getElementById(telId).value;
-            const res = await fetch('/api/salvar', {
+            const res = await fetch('/agenda/api/salvar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nome, telefone: ddi + tel })
@@ -591,7 +593,7 @@
             const itemElement = document.getElementById(`item-${nome.replace(/[^a-zA-Z0-9]/g, '-')}`);
             if (itemElement) itemElement.classList.toggle('strikethrough', novoEstado);
 
-            await fetch('/api/marcar-informado', {
+            await fetch('/agenda/api/marcar-informado', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nome, informado: novoEstado })
@@ -608,7 +610,7 @@
             const ignorar = document.getElementById('conf-ignorar').value;
             currentSettings.ocultarIgnorados = document.getElementById('filter-ocultar-ignorados').checked;
             currentSettings.ocultarNotificados = document.getElementById('filter-ocultar-notificados').checked;
-            await fetch('/api/settings', {
+            await fetch('/agenda/api/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ diasEscopo: parseInt(dias), ignorar, ocultarIgnorados: currentSettings.ocultarIgnorados, ocultarNotificados: currentSettings.ocultarNotificados })
@@ -619,7 +621,7 @@
         async function handleFilterChange() {
             currentSettings.ocultarIgnorados = document.getElementById('filter-ocultar-ignorados').checked;
             currentSettings.ocultarNotificados = document.getElementById('filter-ocultar-notificados').checked;
-            await fetch('/api/settings', {
+            await fetch('/agenda/api/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ocultarIgnorados: currentSettings.ocultarIgnorados, ocultarNotificados: currentSettings.ocultarNotificados })
@@ -643,7 +645,7 @@
                 dados.append('senha', senha);
                 zona.textContent = "Enviando...";
                 try {
-                    const req = await fetch('/api/upload', { method: 'POST', body: dados });
+                    const req = await fetch('/agenda/api/upload', { method: 'POST', body: dados });
                     const res = await req.json();
                     zona.textContent = res.success ? "✅ Atualizado!" : `❌ Erro: ${res.message}`;
                     if (res.success && fieldName === 'credenciais') carregarDadosIniciais();

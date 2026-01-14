@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@google-cloud/local-auth": "^3.0.1",
-    "express": "^5.1.0",
+    "express": "^5.2.1",
     "google-libphonenumber": "^3.2.43",
     "googleapis": "^166.0.0",
     "multer": "^2.0.2",

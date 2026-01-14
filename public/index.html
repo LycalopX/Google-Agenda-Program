@@ -676,6 +676,25 @@
                 btn.textContent = 'Mostrar Configurações Avançadas';
             }
         }
+
+        async function apagarToken() {
+            if (!confirm('Tem certeza que deseja apagar o token de acesso? Isso exigirá uma nova autenticação com o Google.')) {
+                return;
+            }
+            try {
+                const res = await fetch('/api/delete-token', { method: 'POST' });
+                const result = await res.json();
+                if (res.ok && result.success) {
+                    alert('Token apagado com sucesso. A página será recarregada para uma nova autenticação.');
+                    window.location.reload();
+                } else {
+                    throw new Error(result.message || 'Falha ao apagar o token.');
+                }
+            } catch (error) {
+                alert(`Erro: ${error.message}`);
+            }
+        }
+
         window.onload = () => {
             configurarDrop('drop-cred', 'credenciais');
             configurarDrop('drop-banco', 'pacientes');

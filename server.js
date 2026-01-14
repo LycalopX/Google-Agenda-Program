@@ -322,6 +322,18 @@ router.post('/api/upload', (req, res) => {
     });
 });
 
+router.post('/api/delete-token', (req, res) => {
+    try {
+        if (fs.existsSync(TOKEN_PATH)) {
+            fs.unlinkSync(TOKEN_PATH);
+        }
+        res.json({ success: true, message: "Token apagado com sucesso." });
+    } catch (e) {
+        console.error("Erro ao apagar token:", e);
+        res.status(500).json({ success: false, message: "Erro interno ao tentar apagar o token." });
+    }
+});
+
 getSettings();
 
 const porta = 4040;

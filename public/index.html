@@ -392,6 +392,7 @@
                     <input type="password" id="senha-admin" placeholder="Padrão: admin">
                     <div class="drop-zone" id="drop-cred">Arraste <b>credentials.json</b></div>
                     <div class="drop-zone" id="drop-banco">Arraste <b>pacientes.json</b></div>
+                    <button onclick="apagarToken()" style="width: 100%; margin-top: 15px; background-color: var(--danger);">Apagar Token de Acesso</button>
                 </div>
             </div>
         </div>
@@ -682,7 +683,7 @@
                 return;
             }
             try {
-                const res = await fetch('/api/delete-token', { method: 'POST' });
+                const res = await fetch('/agenda/api/delete-token', { method: 'POST' });
                 const result = await res.json();
                 if (res.ok && result.success) {
                     alert('Token apagado com sucesso. A página será recarregada para uma nova autenticação.');
